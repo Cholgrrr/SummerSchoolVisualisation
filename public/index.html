@@ -1,0 +1,717 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Use correct character set. -->
+  <meta charset="utf-8">
+  <!-- Tell IE to use the latest, best version. -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <!-- Make the application on mobile take up the full browser screen and disable user scaling. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js" type="text/javascript"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <title>Prototyp</title>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+	<!-- Latest compiled JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="/Cesium/Cesium.js"></script>
+
+  <script src="js/IntersectionAPI.js"></script>
+  <script src="js/3dcitydb-web-map.js"></script>  
+  <script src="js/CitydbUtil.js"></script>  
+  <script src="js/CitydbWebworker.js"></script>
+  <script src="js/CitydbSceneTransforms.js"></script> 
+  <script src="js/CitydbKmlHighlightingManager.js"></script>   
+  <script src="js/CitydbKmlTilingManager.js"></script>  
+  <script src="js/CitydbKmlDataSource.js"></script>    
+  <script src="js/Cesium3DTilesDataLayer.js"></script>  
+  <script src="js/CitydbKmlLayer.js"></script> 
+  <!-- Legend -->
+  <script src="js/helpers.min.js"></script>
+
+
+
+  <link rel="stylesheet" type="text/css" href="css/style.css">
+  <link rel="stylesheet" type="text/css" href="css/legend.min.css">
+
+  <style>
+      @import url(/Cesium/Widgets/widgets.css);
+      html, body, #cesiumContainer {
+          width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
+      }
+  </style>
+</head>
+<body class="sandcastle" id="dummy">
+<div>
+<nav class="navbar navbar-inverse" style="margin-bottom:0px">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">Prototyp</a>
+        </div>
+        <ul class="nav navbar-nav">
+            <li class="active"><a href="#">Home</a></li>
+			<li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">Select Location <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li onclick="selectplaceW()"><a href="#">Walheim</a></li>
+                    <li onclick="selectplaceV()"><a href="#">Vaihingen an der Enz</a></li>
+                    <li onclick="selectplaceNY()"><a href="#">New York</a></li>
+                    <li onclick="loadServerNY()"><a href="#">Brooklyn</a></li>
+                    <li onclick="OpenInput()"><a href="#">Own Area</a></li>
+                </ul>
+            </li>
+			
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">Select Coloring <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li onclick="tempSelect()"><a href="#">temperature</a></li>
+                    <li onclick="gasSelect()"><a href="#">EUI</a></li>
+                    <li onclick="heatSelect()"><a href="#">Spec. Heating and DHW (Status Quo)</a></li>
+                    <li onclick="heatSelectnew()"><a href="#">Spec. Heating and DHW (Retrofit)</a></li>
+                    <li onclick="getspecheat()"><a href="#">Spec. Heating as Test</a></li>
+
+                </ul>
+            </li>
+        </ul>
+        <button class="btn btn-danger navbar-btn" id="colorBtn" onclick="managedata();">Confirm</button>
+        <form class="navbar-form navbar-right">
+            <div class="form-group" id="visibilitySet" style="visibility:hidden">
+                <input type="text" class="form-control" id="tempPlace" placeholder="temperature">
+            </div>
+            <button type="submit" onclick="" class="btn btn-default" id="visibilitySet2" style="visibility:hidden">Submit</button>
+        </form>
+    </div>
+</nav>
+
+	<div class="backdrop" style="display:none;" id="menu">
+		<h1 id="legend"> Legend </h1>
+
+		<span>
+			<strong>Temperature in &#8451;</strong>
+		</span>
+		<table>
+			<tr>
+				<td class = "seventeen"></td>
+				<td class = "desc">17 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "eighteen"></td>
+				<td class = "desc">18 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "nineteen"></td>
+				<td class = "desc">19 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "twenty"></td>
+				<td class = "desc">20 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "twentyone"></td>
+				<td class = "desc">21 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "twentytwo"></td>
+				<td class = "desc">22 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "twentythree"></td>
+				<td class = "desc">23 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "twentyfour"></td>
+				<td class = "desc">24 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "twentyfive"></td>
+				<td class = "desc">25 	&#8451;</td>
+			</tr>
+			<tr>
+				<td class = "non"></td>
+				<td class = "desc">not heated</td>
+			</tr>
+			<tr>
+				<td class = "nodata"></td>
+				<td class = "desc">no data</td>
+			</tr>
+
+		</table>
+		
+	</div>
+  <div id="cesiumContainer"></div>
+</div>
+  <script>
+
+    var viewer = new Cesium.Viewer('cesiumContainer', {
+    imageryProvider : new Cesium.ArcGisMapServerImageryProvider({
+        url : 'http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer'
+    }),
+    baseLayerPicker : false,
+    shadows  : false,
+    //terrainShadows: Cesium.ShadowMode.disabled,
+	//timeline : false	
+});
+
+// Create a clock that loops on Christmas day 2013 and runs in real-time.
+    //viewer.sun.destroy;
+    //viewer.scene.sun = new Cesium.Sun();
+    //viewer.scene.sun.show = false;
+
+
+//
+//$(viewer._animation.container).css('visibility', 'hidden'); 
+//let s = 999999;
+//viewer.clock.onTick.addEventListener(function (clock) {
+//    if (viewer.clock.getValue <= "2015-11-22T14:00:00Z") {
+//        console.log(viewer.clock.currentTime);
+//        alert("Hello! I am an alert box!!");
+//    } else {
+//        viewer.clock.canAnimate = true;
+//        viewer.clock.shouldAnimate = true;
+//    }
+//    s++;
+//});
+//var myListener = function(clock){
+  //if(viewer.clock.currentTime <= '2015-08-15Z00:00:00T'){
+  //  alert("test");
+  //}
+//}
+
+
+
+
+
+
+viewer.forceResize();
+var webMap = new WebMap3DCityDB(viewer);
+webMap.activateViewChangedEvent(true);			
+webMap.activateMouseClickEvents(true);
+webMap.activateMouseMoveEvents(true);
+
+var tileset;
+var tileset1;
+var tileset2;
+var tileset3;
+var defTile;
+var buildingLayer;
+var selectplaceWg = function()  {
+        
+        buildingLayer = new CitydbKmlLayer({
+            url: 'Streets/NYC_Manhattan_Streets.json'
+        });
+        var promise = webMap.addLayer(buildingLayer);
+				
+		Cesium.when(promise, function(loadedcitydbLayer){
+			loadedcitydbLayer.zoomToStartPosition();
+		});	
+ 
+};
+function selectplaceNY(){
+// Set the initial camera view to look at Walheim
+//Load Min and max from database
+
+startingSelection('NewYork')
+defTile = "N"
+var initialPosition = Cesium.Cartesian3.fromDegrees(-74.01881302800248, 40.69114333714821, 753);
+var initialOrientation = new Cesium.HeadingPitchRoll.fromDegrees(21.27879878293835, -21.34390550872461, 0.0716951918898415);
+viewer.scene.camera.setView({
+    destination: initialPosition,
+    orientation: initialOrientation,
+    endTransform: Cesium.Matrix4.IDENTITY
+});
+
+//################################################################
+//################################################################
+
+// Load Tileset
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+var t0 = performance.now();
+	tileset3 = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+    url: 'https://beta.cesium.com/api/assets/1461?access_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkYWJmM2MzNS02OWM5LTQ3OWItYjEyYS0xZmNlODM5ZDNkMTYiLCJpZCI6NDQsImFzc2V0cyI6WzE0NjFdLCJpYXQiOjE0OTkyNjQ3NDN9.vuR75SqPDKcggvUrG_vpx0Av02jdiAxnnB1fNf-9f7s'
+}));
+    var t1 = performance.now();
+    console.log("Call to tileset = " + (t1 - t0) + "milliseconds")
+	};
+function selectplaceW(){
+// Set the initial camera view to look at Walheim
+//Load Min and max from database
+
+startingSelection('Walheim')
+defTile = "W"
+var initialPosition = Cesium.Cartesian3.fromDegrees(9.12590, 48.99500, 753);
+var initialOrientation = new Cesium.HeadingPitchRoll.fromDegrees(21.27879878293835, -21.34390550872461, 0.0716951918898415);
+viewer.scene.camera.setView({
+    destination: initialPosition,
+    orientation: initialOrientation,
+    endTransform: Cesium.Matrix4.IDENTITY
+});
+
+//################################################################
+//################################################################
+
+// Load Tileset
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+var t0 = performance.now();
+	tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+		url : '/data/940/tileset.json'
+    }));
+    var t1 = performance.now();
+    console.log("Call to tileset = " + (t1 - t0) + "milliseconds")
+	};
+// Selected viewing area
+function selectplaceV() {
+//webMap.removeLayer(buildingLayer.id);
+startingSelection('Vaihingen an der Enz')
+var initialPosition = Cesium.Cartesian3.fromDegrees(8.94224, 48.90476, 753);
+var initialOrientation = new Cesium.HeadingPitchRoll.fromDegrees(21.27879878293835, -21.34390550872461, 0.0716951918898415);
+viewer.scene.camera.setView({
+    destination: initialPosition,
+    orientation: initialOrientation,
+    endTransform: Cesium.Matrix4.IDENTITY
+});
+defTile ="V"
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	tileset1 = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+		url : '/data/1060/tileset.json'
+	}));
+// Selected viewing area
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	tileset2 = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+		url : '/data/1061/tileset.json'
+	}));
+	};
+// Selected viewing area
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// HTML overlay for showing feature name on mouseover
+var nameOverlay = document.createElement('div');
+viewer.container.appendChild(nameOverlay);
+nameOverlay.className = 'backdrop';
+nameOverlay.style.display = 'none';
+nameOverlay.style.position = 'absolute';
+nameOverlay.style.bottom = '0';
+nameOverlay.style.left = '0';
+nameOverlay.style['pointer-events'] = 'none';
+nameOverlay.style.padding = '4px';
+nameOverlay.style.backgroundColor = 'black';
+
+// Information about the currently selected feature
+var selected = {
+    feature: undefined,
+    originalColor: new Cesium.Color()
+};
+
+// Information about the currently highlighted feature
+var highlighted = {
+    feature: undefined,
+    originalColor: new Cesium.Color()
+};
+
+// An entity object which will hold info about the currently selected feature for infobox display
+var selectedEntity = new Cesium.Entity();
+
+// Color a feature yellow on hover.
+viewer.screenSpaceEventHandler.setInputAction(function onMouseMove(movement) {
+    // If a feature was previously highlighted, undo the highlight
+    if (Cesium.defined(highlighted.feature)) {
+        highlighted.feature.color = highlighted.originalColor;
+        highlighted.feature = undefined;
+    }
+
+    // Pick a new feature
+    var pickedFeature = viewer.scene.pick(movement.endPosition);
+    if (!Cesium.defined(pickedFeature)) {
+        nameOverlay.style.display = 'none';
+        return;
+    }
+
+    // A feature was picked, so show it's overlay content
+    nameOverlay.style.display = 'block';
+    nameOverlay.style.bottom = viewer.canvas.clientHeight - movement.endPosition.y + 'px';
+    nameOverlay.style.left = movement.endPosition.x + 'px';
+    var name = pickedFeature.getProperty('gmlID');
+    if (!Cesium.defined(name)) {
+        name = pickedFeature.getProperty('gmlID');
+    }
+    nameOverlay.textContent = name;
+	//nameOverlay.style.color = Cesium.Color.BLUE;
+
+    // Highlight the feature if it's not already selected.
+    if (pickedFeature !== selected.feature) {
+        highlighted.feature = pickedFeature;
+        Cesium.Color.clone(pickedFeature.color, highlighted.originalColor);
+        pickedFeature.color = Cesium.Color.YELLOW;
+    }
+}, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+
+// Color a feature on selection and show metadata in the InfoBox.
+var clickHandler = viewer.screenSpaceEventHandler.getInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
+viewer.screenSpaceEventHandler.setInputAction(function onLeftClick(movement) {
+    // If a feature was previously selected, undo the highlight
+    if (Cesium.defined(selected.feature)) {
+        selected.feature.color = selected.originalColor;
+        selected.feature = undefined;
+    }
+
+    // Pick a new feature
+    var pickedFeature = viewer.scene.pick(movement.position);
+    if (!Cesium.defined(pickedFeature)) {
+        clickHandler(movement);
+        return;
+    }
+
+    // Select the feature if it's not already selected
+    if (selected.feature === pickedFeature) {
+        return;
+    }
+    selected.feature = pickedFeature;
+
+    // Save the selected feature's original color
+    if (pickedFeature === highlighted.feature) {
+        Cesium.Color.clone(highlighted.originalColor, selected.originalColor);
+        highlighted.feature = undefined;
+    } else {
+        Cesium.Color.clone(pickedFeature.color, selected.originalColor);
+    }
+
+    // Highlight newly selected feature
+    pickedFeature.color = Cesium.Color.PURPLE;
+
+    // Set feature infobox description
+    var featureName = pickedFeature.getProperty('gmlID');
+    selectedEntity.name = featureName;
+    selectedEntity.description = 'Loading <div class="cesium-infoBox-loading"></div>';
+    viewer.selectedEntity = selectedEntity;
+	selectedEntity.description = '<table class="cesium-infoBox-defaultTable"><tbody>' +
+                                 //'<tr><th>GML ID</th><td>' + pickedFeature.getPropertyNames() + '</td></tr>' +
+                                 '<tr><th>BIN</th><td>' + pickedFeature.getProperty('building_identification_number') + '</td></tr>' +
+								 '<tr><th>Year of Construction</th><td>' + pickedFeature.getProperty('PLUTO_year_built') + ' (' + pickedFeature.getProperty('MeasuredHeight') + ') </td></tr>' +
+								 '<tr><th>Use</th><td>' + pickedFeature.getProperty('PLUTO_land_use_category') + '</td></tr>' +
+								 '<tr><th>Number of Floors</th><td>' + pickedFeature.getProperty('PLUTO_number_of_floors') + '</td></tr>' +
+								 '<tr><th>Building Area</th><td>' + pickedFeature.getProperty('PLUTO_building_area') + '</td></tr>' +
+								 '<tr><th>Commercial Area</th><td>' + pickedFeature.getProperty('PLUTO_commercial_area') + ' ' + pickedFeature.getProperty('ThoroughfareNumber') + '</td></tr>' +
+								
+                                 '</tbody></table>';
+								 SaveTemp(pickedFeature.getProperty('gmlID'));
+	temperatureSet(pickedFeature.getProperty('gmlID'),pickedFeature.getProperty('gmlID'))
+}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+
+function SaveTemp(id){
+    gmlpicked = id
+}
+let pvStufe = {};
+pvStufe[0] = 5;
+var test = "${function} === '31001_2729citygml_function{0}'"
+
+// Color buildings based on their height.
+function colorByHeight() {
+    tileset.style = new Cesium.Cesium3DTileStyle({
+        color: {
+            conditions: [
+                ["regExp(${gml_id}) =~ 'DEBW_0010000mzjh,DEBW_0010000mzjv,DEBW_0010000mztw,	DEBW_0010000mznG'", "color('red')"],
+				["regExp(${gml_parent_id}) =~ 'DEBW_0010000mzjh,DEBW_0010000mzjv,DEBW_0010000mztw,	DEBW_0010000mznG'", "color('red')"],
+                ["true", "color('blue')"]
+            ]
+        }
+    });
+}
+
+var handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+
+handler.setInputAction(function(movement) {
+//alert(movement.position)
+
+    var feature = viewer.scene.pick(movement.position);
+	//alert(feature.getProperty('gmlID'))
+	console.log(feature)
+    if (!Cesium.defined(feature)) {
+        return;
+    }
+    feature.show = false;
+}, Cesium.ScreenSpaceEventType.MIDDLE_CLICK);
+
+let resdata
+// If input is valid, then go on with sending the data to the server.
+function TestColor(pv) {
+	try {
+		console.log(pvStufe)
+		$.ajax({
+			type: "POST",
+			url: '/loadPV',
+			data: pvStufe,
+		}).done(function (newdata) {
+			convertdata(newdata);
+		});
+		
+		function convertdata(datanew){
+			resdata = datanew;
+		}
+		return resdata;
+	}
+	catch (err) {
+		console.log('delivering of the inserted tree data to the server failed!');
+	}
+}
+
+function Testpv() {
+	console.log(resdata)
+
+}
+function getExtentView() {
+    var cl2 = new Cesium.Cartesian2(0, 0);
+    var leftTop = viewer.scene.camera.pickEllipsoid(cl2, ellipsoid);
+
+    cr2 = new Cesium.Cartesian2(viewer.scene.canvas.width, viewer.scene.canvas.height);
+    var rightDown = viewer.scene.camera.pickEllipsoid(cr2, ellipsoid);
+
+    if (leftTop != null && rightDown != null) {
+        leftTop = ellipsoid.cartesianToCartographic(leftTop);
+        rightDown = ellipsoid.cartesianToCartographic(rightDown);
+        return new Cesium.Rectangle(leftTop.longitude, rightDown.latitude, rightDown.longitude, leftTop.latitude);
+    } else {
+        console.log("Sky is visible");
+        return null;
+    }
+}
+
+
+
+
+
+function legendele(){
+  var legend = new Legend("cesiumContainer", "legendnew");
+  // setTop or setBottom or setLeft or setRight
+  legend.setRight("20px");
+  legend.setBottom("60px");
+  legend.setTitle("Energy Usage Intensity (LL84)");
+  legend.setSubtitle("[kBtu/ft2]");
+  //legend.setEndnote("some text");
+  legend.addEntry([26,150,65], "1 - 30");
+  legend.addEntry([166,217,106], "31 - 70");
+  legend.addEntry([255,255,191], "71 - 120");
+  legend.addEntry([253,174,97], "121 - 200");
+  legend.addEntry([215,25,28], "> 200");
+  legend.addEntry([128,128,128], "No Data");
+  legend.render();
+  
+  // hide and show after rendering
+  //legend.show();
+  //legend.hide();
+};
+function legendheat(){
+  var legend = new Legend("cesiumContainer", "legendheat");
+  // setTop or setBottom or setLeft or setRight
+  legend.setRight("20px");
+  legend.setBottom("60px");
+  legend.setTitle("Heating and dhw");
+  legend.setSubtitle("[kwh/m2a]");
+  //legend.setEndnote("some text");
+  legend.addEntry([26,150,65], "1 - 75");
+  legend.addEntry([166,217,106], "76 - 125");
+  legend.addEntry([255,255,191], "126 - 175");
+  legend.addEntry([253,174,97], "176 - 250");
+  legend.addEntry([215,25,28], "251 - 600");
+  legend.addEntry([128,128,128], "No Data");
+  legend.render();
+  
+  // hide and show after rendering
+  //legend.show();
+  //legend.hide();
+};
+
+function legendheatnew(){
+  var legend = new Legend("cesiumContainer", "legendheatnew");
+  // setTop or setBottom or setLeft or setRight
+  legend.setRight("20px");
+  legend.setBottom("60px");
+  legend.setTitle("Heating and dhw");
+  legend.setSubtitle("[kwh/m2a]");
+  //legend.setEndnote("some text");
+  legend.addEntry([26,150,65], "1 - 75");
+  legend.addEntry([166,217,106], "76 - 125");
+  legend.addEntry([255,255,191], "126 - 175");
+  legend.addEntry([253,174,97], "176 - 250");
+  legend.addEntry([215,25,28], "251 - 600");
+  legend.addEntry([128,128,128], "No Data");
+  legend.render();
+  
+  // hide and show after rendering
+  //legend.show();
+  //legend.hide();
+};
+
+var currentLayer = "NY_LoD2";
+function loadServerNY(){
+    defTile = "N"
+    startingSelection('NewYork')
+    if (Input ="&BOUNDINGBOX=") {
+        var bbox = "&BOUNDINGBOX=-74.02063076659721,40.66393225031631,-73.97034116135889,40.7070882192186" 
+    }else if (Input ="") {
+        var bbox = "&BOUNDINGBOX=-74.02063076659721,40.66393225031631,-73.97034116135889,40.7070882192186" 
+    }else{
+        var bbox = Input 
+    }
+
+    //var bbox = "&BOUNDINGBOX=-74.02063076659721,40.66393225031631,-73.97034116135889,40.7070882192186" 
+    createRequest(currentLayer, bbox);
+
+}
+
+var oldstyling = null;
+var dragging = undefined;
+var drawing = false;
+var handler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+var rectVisible = false;
+
+function handleResponse(xml, bbox, layer) {
+    var xmlDoc = xml.response;
+    var tilesetPath = xmlDoc.substring(9,xmlDoc.length -10);
+    // The url = Service Address of Provider
+    //var url = "http://tb13.igd.fraunhofer.de:8083/3dps/datahoster/297c1cdd-2d6d-4148-85c8-8fc4648a0a04/NY_LoD2/tileset.json" 
+    var url = "http://tb13.igd.fraunhofer.de:8083" + tilesetPath + "tileset.json";
+    //var url ="http://tb13.igd.fraunhofer.de:8083/3dps/datahoster/1fa65dec-9b38-42e4-9c3f-9ca506c29565/manhattan/tileset.json"
+    loadTileset(url, bbox);
+
+}
+
+
+
+
+function createRequest(layer, bbox){
+    // layer has to be "newyork" or "manhattan"
+    // bbox has to be "west,south,east,north"
+    // adress has to be adjusted
+    var requestUri = "https://cors.io/?http://tb13.igd.fraunhofer.de:8082/3dps?SERVICE=3DPS&VERSION=1.0&REQUEST=GetScene&LAYERS="+ layer + "&FORMAT=text/html&CRS=EPSG:4326" + bbox; 
+    // Make request
+    // Asynchron request
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+
+        if (xhttp.readyState === 4 && xhttp.status === 200) {
+            handleResponse(xhttp, bbox, layer);
+        }
+        else if(xhttp.readyState === 4){
+            console.log("Could not reach 3DPS server.");
+        }
+    };
+    xhttp.open("GET", requestUri, true);
+    xhttp.send();
+}
+
+
+// load 3d tiles
+//var tilesetNY;
+var exp = "";
+var expreverse = "";
+function loadTileset(url, bbox) {
+    //reset();
+    if (x1 == "" || y1==""  ||x2 == "" || y2 == "") {
+
+    } else {
+    viewer.entities.add({
+        rectangle : {
+            //clampToGround = true,
+            name : "bounding_box",
+            coordinates : Cesium.Rectangle.fromDegrees(x1, y1, x2, y2),
+            material: Cesium.Color.BLUE.withAlpha(0.2)
+        }
+    });
+    }
+    tileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+        url : url,
+        maximumNumberOfLoadedTiles : 3
+    }));
+    if (x1 == "" || y1==""  ||x2 == "" || y2 == "") {
+        exp = "${Longitude} >= -74.02063076659721  && ${Latitude} >= 40.66393225031631 && ${Longitude} <= -73.97034116135889 && ${Latitude} <= 40.7070882192186";
+        expreverse = "${Longitude} <= -74.02063076659721  || ${Latitude} <= 40.66393225031631 || ${Longitude} >= -73.97034116135889 || ${Latitude} >= 40.7070882192186";
+    } else {
+        exp = "${Longitude} >= " + x1 + "  && ${Latitude} >= " + y1 + " && ${Longitude} <= " + x2 + " && ${Latitude} <= " + y2;
+        expreverse = "${Longitude} <= " + x1 + "  || ${Latitude} <= " + y1 + " || ${Longitude} >= " + x2 + " || ${Latitude} >= " + y2;
+    }
+
+
+
+    
+		
+    if(bbox !== ""){
+        tileset.style = new Cesium.Cesium3DTileStyle(
+            { 
+                show : exp
+            }
+    );}
+
+
+    //var initialPosition = Cesium.Cartesian3.fromDegrees(-74.018813028002, 40.691143337148, 753);
+    var initialPosition = Cesium.Cartesian3.fromDegrees(-74.012813028002, 40.671143337148, 753);
+    var initialOrientation = new Cesium.HeadingPitchRoll.fromDegrees(21.27879878293835, -21.34390550872461, 0.0716951918898415);
+    viewer.scene.camera.flyTo({
+        destination: initialPosition,
+        orientation: initialOrientation,
+        endTransform: Cesium.Matrix4.IDENTITY
+    });
+	};
+
+
+
+
+
+function reset() {
+    if (Cesium.defined(tileset)) {
+        viewer.scene.primitives.remove(tileset);
+    } else if (Cesium.defined(tileset)) {
+        viewer.scene.primitives.remove(tileset)
+    }else if (Cesium.defined(tileset1)) {
+        viewer.scene.primitives.remove(tileset1)
+    }else if (Cesium.defined(tileset2)) {
+        viewer.scene.primitives.remove(tileset2)
+    }
+}
+
+
+
+var Input;
+var x1 = "";
+var y1 = "";
+var x2 = "";
+var y2 = "";
+function OpenInput() {
+    
+    var BBoxInput = prompt("Please enter your Bounding Coordinates:", "-74.02063076659721,40.66393225031631,-73.97034116135889,40.7070882192186");
+    if (BBoxInput == null || BBoxInput == "") {
+        Input = "User cancelled the prompt.";
+    } else {
+        Input = "&BOUNDINGBOX=" + BBoxInput;
+        var array = BBoxInput.split(',');
+        x1 = array[0]
+        y1 = array[1]
+        x2 = array[2]
+        y2 = array[3]
+
+        loadServerNY()
+    }
+    //document.getElementById("demo").innerHTML = Input;
+}
+
+    $('#colorBtn').click(function(){
+        if(defTile =="N"){
+            tesstgeneral(tileset,defTile,year)
+        }else if (defTile =="W"){
+            tesstgeneral(tileset,defTile,year)
+        }else if (defTile =="V"){
+        tesstgeneral(tileset1,defTile,year)
+        }
+    });
+
+
+
+  </script>
+  <script src="js/function.js"></script>
+</body>
+</html>
